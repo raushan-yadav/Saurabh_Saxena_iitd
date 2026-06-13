@@ -1170,13 +1170,6 @@ document.querySelectorAll('.btn-primary, .btn-secondary').forEach(btn => {
   btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
 });
 </script>
-<!-- ════════════════════════════════════════════════════════════════════════
-     BATCH LAB — ADD-ON FEATURES
-     👉 Is poore block ko apni file mein  </body>  tag ke THEEK PEHLE paste karo.
-     👉 Baaki kisi line ko chedhne ki zarurat nahi — yeh block khud sab inject kar deta hai.
-     Features: 1) Publication Preview Modal  2) Cite + Back-to-Top
-               3) Research Impact Strip  4) Team Hover Tooltips
-     ════════════════════════════════════════════════════════════════════════ -->
 
 <style>
 /* ---- Floating Back-to-Top ---- */
@@ -1269,7 +1262,7 @@ document.querySelectorAll('.btn-primary, .btn-secondary').forEach(btn => {
       overlay.classList.add('open');
     }
 
-    // Locate the publication grid (children = cards)
+    // Locate the publication grid 
     var grid=document.querySelector('#publications .fade-up[style*="grid"]');
     if(grid){
       Array.prototype.forEach.call(grid.children,function(card,i){
@@ -1289,14 +1282,14 @@ document.querySelectorAll('.btn-primary, .btn-secondary').forEach(btn => {
         var bar=document.createElement('div');
         bar.className='addon-pub-actions';
 
-        // Preview button (sab cards pe)
+        // Preview button 
         var prev=document.createElement('button');
         prev.className='addon-btn';
         prev.innerHTML='Preview &#128269;';
         prev.addEventListener('click',function(){ openModal(badge,title,meta,abstracts[i]||''); });
         bar.appendChild(prev);
 
-        // Cite button (sirf actual publications pe — news pe nahi)
+        // Cite button 
         if(!isNews){
           var apa='Saxena, S.'+(year?' ('+year+').':'')+' '+title+'.'+(journal?' '+journal+'.':'');
           var cite=document.createElement('button');
@@ -1408,6 +1401,5 @@ document.querySelectorAll('.btn-primary, .btn-secondary').forEach(btn => {
   });
 })();
 </script>
-<!-- ════════════════════ END ADD-ON FEATURES ════════════════════ -->
 </body>
 </html>
