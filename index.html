@@ -1170,5 +1170,244 @@ document.querySelectorAll('.btn-primary, .btn-secondary').forEach(btn => {
   btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
 });
 </script>
+<!-- ════════════════════════════════════════════════════════════════════════
+     BATCH LAB — ADD-ON FEATURES
+     👉 Is poore block ko apni file mein  </body>  tag ke THEEK PEHLE paste karo.
+     👉 Baaki kisi line ko chedhne ki zarurat nahi — yeh block khud sab inject kar deta hai.
+     Features: 1) Publication Preview Modal  2) Cite + Back-to-Top
+               3) Research Impact Strip  4) Team Hover Tooltips
+     ════════════════════════════════════════════════════════════════════════ -->
+
+<style>
+/* ---- Floating Back-to-Top ---- */
+#addonTopBtn{position:fixed;bottom:26px;right:26px;width:50px;height:50px;border-radius:50%;background:var(--teal);color:#fff;border:none;cursor:pointer;font-size:1.5rem;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(14,124,107,0.42);opacity:0;visibility:hidden;transform:translateY(20px) scale(0.8);transition:all .35s cubic-bezier(0.16,1,0.3,1);z-index:400;}
+#addonTopBtn.show{opacity:1;visibility:visible;transform:translateY(0) scale(1);}
+#addonTopBtn:hover{background:var(--teal-dark);transform:translateY(-3px) scale(1.08);box-shadow:0 12px 30px rgba(14,124,107,0.5);}
+
+/* ---- Publication action buttons ---- */
+.addon-pub-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.addon-btn{display:inline-flex;align-items:center;gap:5px;font-size:0.76rem;font-weight:600;padding:6px 13px;border-radius:9px;border:1.5px solid rgba(14,124,107,0.3);background:var(--teal-light);color:var(--teal);cursor:pointer;transition:all .2s;font-family:var(--font-body);}
+.addon-btn:hover{background:var(--teal);color:#fff;border-color:var(--teal);transform:translateY(-1px);}
+.addon-btn.copied{background:#16a34a;border-color:#16a34a;color:#fff;}
+
+/* ---- Preview Modal ---- */
+#addonModalOverlay{position:fixed;inset:0;background:rgba(8,12,18,0.78);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:500;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;visibility:hidden;transition:opacity .3s;}
+#addonModalOverlay.open{opacity:1;visibility:visible;}
+.addon-modal{background:#13181f;color:#e8edf2;border:1px solid rgba(255,255,255,0.1);border-radius:18px;max-width:560px;width:100%;padding:2.1rem 2rem 1.8rem;box-shadow:0 30px 80px rgba(0,0,0,0.6);position:relative;transform:translateY(24px) scale(0.96);transition:transform .35s cubic-bezier(0.16,1,0.3,1);max-height:86vh;overflow-y:auto;}
+#addonModalOverlay.open .addon-modal{transform:translateY(0) scale(1);}
+.addon-modal-close{position:absolute;top:14px;right:16px;width:32px;height:32px;border:none;background:rgba(255,255,255,0.08);color:#e8edf2;border-radius:8px;cursor:pointer;font-size:1.05rem;line-height:1;transition:all .25s;}
+.addon-modal-close:hover{background:#E8521A;color:#fff;transform:rotate(90deg);}
+.addon-modal-badge{display:inline-block;font-size:0.7rem;font-weight:700;letter-spacing:0.05em;padding:4px 12px;border-radius:20px;background:rgba(30,203,176,0.15);color:#1ecbb0;margin-bottom:14px;}
+.addon-modal-title{font-family:var(--font-display);font-size:1.42rem;line-height:1.3;margin-bottom:8px;color:#fff;}
+.addon-modal-meta{font-size:0.85rem;color:#7a8fa0;margin-bottom:18px;}
+.addon-modal-label{font-size:0.68rem;font-weight:800;letter-spacing:0.12em;text-transform:uppercase;color:#1ecbb0;margin-bottom:8px;}
+.addon-modal-abstract{font-size:0.92rem;line-height:1.78;color:#b0bec8;margin-bottom:24px;text-align:justify;}
+.addon-modal-scholar{display:inline-flex;align-items:center;gap:8px;background:var(--teal);color:#fff;padding:11px 22px;border-radius:11px;font-size:0.85rem;font-weight:600;text-decoration:none;transition:all .2s;}
+.addon-modal-scholar:hover{background:var(--teal-dark);transform:translateY(-2px);}
+
+/* ---- Research Impact Strip ---- */
+#addonImpact{background:linear-gradient(120deg,var(--teal-dark),var(--teal) 55%,var(--teal-mid));padding:2.6rem 2rem;position:relative;overflow:hidden;}
+#addonImpact::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 15% 30%,rgba(255,255,255,0.10),transparent 45%),radial-gradient(circle at 85% 70%,rgba(255,255,255,0.08),transparent 45%);pointer-events:none;}
+.addon-impact-inner{max-width:1120px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-around;gap:1.4rem;position:relative;z-index:1;}
+.addon-impact-item{text-align:center;color:#fff;min-width:110px;}
+.addon-impact-num{font-family:var(--font-display);font-size:2.5rem;line-height:1;display:block;letter-spacing:-0.02em;}
+.addon-impact-lbl{font-size:0.73rem;letter-spacing:0.08em;text-transform:uppercase;opacity:0.88;margin-top:7px;}
+.addon-impact-div{width:1px;height:48px;background:rgba(255,255,255,0.28);}
+@media(max-width:760px){.addon-impact-div{display:none;}.addon-impact-num{font-size:2rem;}}
+
+/* ---- Team Hover Tooltip ---- */
+.addon-tip{position:fixed;z-index:450;width:244px;background:#0d1218;color:#e8edf2;border:1px solid rgba(30,203,176,0.32);border-radius:14px;padding:14px 16px;box-shadow:0 18px 50px rgba(0,0,0,0.55);opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .22s,transform .22s;pointer-events:none;}
+.addon-tip.show{opacity:1;visibility:visible;transform:translateY(0);}
+.addon-tip::after{content:'';position:absolute;bottom:-7px;left:50%;transform:translateX(-50%) rotate(45deg);width:13px;height:13px;background:#0d1218;border-right:1px solid rgba(30,203,176,0.32);border-bottom:1px solid rgba(30,203,176,0.32);}
+.addon-tip.below::after{bottom:auto;top:-7px;transform:translateX(-50%) rotate(225deg);}
+.addon-tip-name{font-size:0.9rem;font-weight:700;color:#fff;margin-bottom:2px;}
+.addon-tip-role{font-size:0.7rem;color:#1ecbb0;font-weight:600;}
+.addon-tip-lbl{font-size:0.6rem;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#7a8fa0;margin:11px 0 5px;}
+.addon-tip-about{font-size:0.78rem;line-height:1.55;color:#b0bec8;}
+.addon-tip-areas{display:flex;flex-wrap:wrap;gap:5px;}
+.addon-tip-chip{font-size:0.67rem;background:rgba(30,203,176,0.14);color:#1ecbb0;padding:3px 9px;border-radius:20px;}
+</style>
+
+<script>
+(function(){
+  var SCHOLAR='https://scholar.google.com/citations?user=eMlGAiYAAAAJ&hl=en';
+  function ready(fn){ if(document.readyState!=='loading')fn(); else document.addEventListener('DOMContentLoaded',fn); }
+
+  ready(function(){
+
+    /* ========== 1 & 2 : PUBLICATION PREVIEW MODAL + CITE ========== */
+    var abstracts=[
+      "This study presents a machine-learning framework for estimating the state-of-health (SOH) of lithium-ion batteries under real-world Indian electric-vehicle drive cycles. Using field-representative current, voltage and temperature profiles, the model captures capacity-fade trends across diverse usage and ambient conditions, delivering accurate SOH predictions suitable for on-board battery management systems.",
+      "We propose a physics-informed neural network (PINN) that embeds electrochemical degradation physics into the learning process to predict long-term Li-ion battery aging. By coupling data-driven learning with governing degradation equations, the approach improves extrapolation to unseen cycling conditions and enhances the interpretability of capacity-loss predictions.",
+      "The Hyundai Motor Group (HMG) Korea team visited the BATCH Lab at IIT Delhi to explore joint research opportunities in future mobility, battery diagnostics and EV systems. The visit included a walkthrough of the lab's testing and characterisation facilities and discussions on a collaborative research roadmap."
+    ];
+
+    // Build modal once
+    var overlay=document.createElement('div');
+    overlay.id='addonModalOverlay';
+    overlay.innerHTML='<div class="addon-modal">'
+      +'<button class="addon-modal-close" aria-label="Close">&times;</button>'
+      +'<span class="addon-modal-badge" id="addonMBadge"></span>'
+      +'<div class="addon-modal-title" id="addonMTitle"></div>'
+      +'<div class="addon-modal-meta" id="addonMMeta"></div>'
+      +'<div class="addon-modal-label">Abstract</div>'
+      +'<div class="addon-modal-abstract" id="addonMAbs"></div>'
+      +'<a class="addon-modal-scholar" id="addonMScholar" target="_blank" href="'+SCHOLAR+'">'
+      +'<svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M5.242 13.769L0 9.5 12 0l12 9.5-5.242 4.269C17.548 11.249 14.978 9.5 12 9.5c-2.977 0-5.548 1.748-6.758 4.269zM12 10a7 7 0 1 0 0 14 7 7 0 0 0 0-14z"/></svg>'
+      +'View on Scholar</a></div>';
+    document.body.appendChild(overlay);
+    function closeModal(){ overlay.classList.remove('open'); }
+    overlay.addEventListener('click',function(e){ if(e.target===overlay)closeModal(); });
+    overlay.querySelector('.addon-modal-close').addEventListener('click',closeModal);
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape')closeModal(); });
+
+    function openModal(badge,title,meta,abs){
+      overlay.querySelector('#addonMBadge').textContent=badge||'Publication';
+      overlay.querySelector('#addonMTitle').textContent=title;
+      overlay.querySelector('#addonMMeta').textContent=meta;
+      overlay.querySelector('#addonMAbs').textContent=abs;
+      overlay.classList.add('open');
+    }
+
+    // Locate the publication grid (children = cards)
+    var grid=document.querySelector('#publications .fade-up[style*="grid"]');
+    if(grid){
+      Array.prototype.forEach.call(grid.children,function(card,i){
+        var titleEl=card.querySelector('[style*="font-weight:600"]');
+        var metaEl =card.querySelector('[style*="0.78rem"]');
+        var badgeEl=card.querySelector('span');
+        if(!titleEl) return;
+        var title=titleEl.textContent.trim();
+        var meta = metaEl?metaEl.textContent.trim().replace(/\s+/g,' '):'';
+        var badge= badgeEl?badgeEl.textContent.trim():'Publication';
+        var emEl = metaEl?metaEl.querySelector('em'):null;
+        var journal= emEl?emEl.textContent.trim():'';
+        var ym = meta.match(/(19|20)\d{2}/);
+        var year= ym?ym[0]:'';
+        var isNews=/news/i.test(badge);
+
+        var bar=document.createElement('div');
+        bar.className='addon-pub-actions';
+
+        // Preview button (sab cards pe)
+        var prev=document.createElement('button');
+        prev.className='addon-btn';
+        prev.innerHTML='Preview &#128269;';
+        prev.addEventListener('click',function(){ openModal(badge,title,meta,abstracts[i]||''); });
+        bar.appendChild(prev);
+
+        // Cite button (sirf actual publications pe — news pe nahi)
+        if(!isNews){
+          var apa='Saxena, S.'+(year?' ('+year+').':'')+' '+title+'.'+(journal?' '+journal+'.':'');
+          var cite=document.createElement('button');
+          cite.className='addon-btn';
+          cite.innerHTML='&#128203; Cite';
+          var orig=cite.innerHTML;
+          cite.addEventListener('click',function(){
+            var done=function(){ cite.classList.add('copied'); cite.innerHTML='&#9989; Copied!'; setTimeout(function(){ cite.classList.remove('copied'); cite.innerHTML=orig; },1600); };
+            if(navigator.clipboard&&navigator.clipboard.writeText){
+              navigator.clipboard.writeText(apa).then(done).catch(function(){ fallback(apa); done(); });
+            } else { fallback(apa); done(); }
+          });
+          bar.appendChild(cite);
+        }
+        card.appendChild(bar);
+      });
+    }
+    function fallback(text){ var t=document.createElement('textarea'); t.value=text; t.style.position='fixed'; t.style.opacity='0'; document.body.appendChild(t); t.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(t); }
+
+    /* ========== 2 : BACK-TO-TOP ========== */
+    var top=document.createElement('button');
+    top.id='addonTopBtn'; top.setAttribute('aria-label','Back to top'); top.innerHTML='&#8593;';
+    top.addEventListener('click',function(){ window.scrollTo({top:0,behavior:'smooth'}); });
+    document.body.appendChild(top);
+    window.addEventListener('scroll',function(){ top.classList.toggle('show',window.scrollY>500); },{passive:true});
+
+    /* ========== 3 : RESEARCH IMPACT STRIP ========== */
+    var stats=[
+      {n:42,suf:'+',lbl:'Publications'},
+      {n:1200,suf:'+',lbl:'Citations'},
+      {n:8,suf:'',lbl:'PhD Students'},
+      {n:15,suf:'+',lbl:'Projects'},
+      {n:6,suf:'',lbl:'Industry Partners'}
+    ];
+    var strip=document.createElement('div'); strip.id='addonImpact';
+    var inner=document.createElement('div'); inner.className='addon-impact-inner';
+    stats.forEach(function(s,idx){
+      var item=document.createElement('div'); item.className='addon-impact-item';
+      item.innerHTML='<span class="addon-impact-num" data-target="'+s.n+'" data-suf="'+s.suf+'">0</span><span class="addon-impact-lbl">'+s.lbl+'</span>';
+      inner.appendChild(item);
+      if(idx<stats.length-1){ var d=document.createElement('div'); d.className='addon-impact-div'; inner.appendChild(d); }
+    });
+    strip.appendChild(inner);
+    var about=document.getElementById('about');
+    if(about){ about.insertAdjacentElement('afterend',strip); }
+
+    var counted=false;
+    var io=new IntersectionObserver(function(ents){
+      ents.forEach(function(e){
+        if(e.isIntersecting && !counted){ counted=true;
+          strip.querySelectorAll('.addon-impact-num').forEach(function(el){
+            var target=+el.getAttribute('data-target'), suf=el.getAttribute('data-suf'), cur=0,
+                step=Math.max(1,Math.ceil(target/(1400/16)));
+            var t=setInterval(function(){ cur+=step; if(cur>=target){cur=target;clearInterval(t);} el.textContent=cur.toLocaleString('en-IN')+suf; },16);
+          });
+        }
+      });
+    },{threshold:0.4});
+    io.observe(strip);
+
+    /* ========== 4 : TEAM HOVER TOOLTIPS ========== */
+    var members={
+      "Vasudha Khubchandani":{role:"Postdoctoral Researcher",about:"Postdoctoral researcher driving advanced battery characterisation and analytics at BATCH Lab.",areas:["EIS Characterisation","Degradation Modelling","Data-driven SOH"]},
+      "Tushar Shikhola":{role:"PhD Scholar",about:"PhD scholar bridging power systems and battery intelligence under joint supervision.",areas:["BMS Algorithms","State Estimation","ML for PHM"]},
+      "Rittik Das":{role:"PhD Scholar",about:"PhD scholar investigating the physics behind lithium-ion cell aging.",areas:["Degradation Mechanisms","Accelerated Aging","Physics of Failure"]},
+      "Haseeba Maqbool":{role:"PhD Scholar",about:"PhD scholar focused on intelligent diagnostics for next-generation battery systems.",areas:["Safety Diagnostics","Fault Detection","Battery Analytics"]},
+      "Rohit Xavier Chatterjee":{role:"PhD Scholar",about:"PhD scholar working on modelling and prediction of battery behaviour.",areas:["Electrochemical Modelling","SOH/SOC Estimation","EV Drive Cycles"]},
+      "Prasoon Mishra":{role:"MSR Student",about:"MSR student exploring data-driven approaches to battery health estimation.",areas:["Machine Learning","SOH Estimation","Cell Testing"]},
+      "Mayank Jaiswal":{role:"MSR Student",about:"MSR student working at the interface of materials and battery analytics.",areas:["Cell Characterisation","Degradation Analysis","Materials Testing"]},
+      "Shubham Chaudhary":{role:"M.Tech / Project Associate",about:"M.Tech researcher and project associate supporting lab-scale battery testing.",areas:["Cell-to-Pack Design","Pack Testing","BMS Development"]},
+      "Piyush":{role:"M.Tech (HVA) Student",about:"M.Tech (HVA) student contributing to vehicle-level battery integration.",areas:["EV Systems","Thermal Management","Pack Design"]},
+      "Parul":{role:"Research Intern",about:"Research intern gaining hands-on experience in battery testing and analytics.",areas:["Cell Testing","Data Acquisition","Characterisation"]},
+      "Raushan Yadav":{role:"Project Associate",about:"Project associate managing experimental setups and battery test campaigns.",areas:["Test Automation","BMS HIL Testing","Data Logging"]}
+    };
+
+    var tip=document.createElement('div'); tip.className='addon-tip'; document.body.appendChild(tip);
+    function fillTip(name,d){
+      tip.innerHTML='<div class="addon-tip-name">'+name+'</div>'
+        +'<div class="addon-tip-role">'+d.role+'</div>'
+        +'<div class="addon-tip-lbl">About</div><div class="addon-tip-about">'+d.about+'</div>'
+        +'<div class="addon-tip-lbl">Research Areas</div><div class="addon-tip-areas">'
+        +d.areas.map(function(a){return '<span class="addon-tip-chip">'+a+'</span>';}).join('')+'</div>';
+    }
+    function placeTip(card){
+      var r=card.getBoundingClientRect();
+      tip.classList.remove('below');
+      var th=tip.offsetHeight, tw=tip.offsetWidth;
+      var left=r.left+r.width/2-tw/2;
+      left=Math.max(10,Math.min(left,window.innerWidth-tw-10));
+      var topPos=r.top-th-14;
+      if(topPos<70){ topPos=r.bottom+14; tip.classList.add('below'); }
+      tip.style.left=left+'px'; tip.style.top=topPos+'px';
+    }
+
+    var teamGrid=document.querySelectorAll('#batch .team-grid')[0];
+    if(teamGrid){
+      teamGrid.querySelectorAll('.member-card').forEach(function(card){
+        var nm=card.querySelector('.member-name');
+        if(!nm) return;
+        var name=nm.textContent.trim();
+        var d=members[name];
+        if(!d) return;
+        card.addEventListener('mouseenter',function(){ fillTip(name,d); tip.classList.add('show'); placeTip(card); });
+        card.addEventListener('mousemove',function(){ placeTip(card); });
+        card.addEventListener('mouseleave',function(){ tip.classList.remove('show'); });
+      });
+    }
+
+  });
+})();
+</script>
+<!-- ════════════════════ END ADD-ON FEATURES ════════════════════ -->
 </body>
 </html>
